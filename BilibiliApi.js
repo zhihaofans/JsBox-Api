@@ -60,8 +60,8 @@ class HttpUtil {
   getCookieBySetcookie(setCookieStr) {}
 }
 class AccountLoginApi {
-  constructor() {
-    this.Cookie = undefined;
+  constructor(cookie) {
+    this.Cookie = cookie;
     this.Http = new HttpUtil();
   }
   getLoginQrcode() {
@@ -108,12 +108,61 @@ class AccountLoginApi {
     });
   }
 }
+class UserInfoApi {
+  constructor(cookie) {
+    this.Cookie = cookie;
+    this.Http = new HttpUtil();
+  }
+  getNavInfo() {
+    return new Promise((resolve, reject) => {
+      const url = "http://api.bilibili.com/x/web-interface/nav";
+      try {
+        this.Http.get(url, {
+          cookie: this.Cookie
+        }).then(
+          result => {
+            if (result !== undefined || result.code === 0) {
+              resolve(result.data);
+            } else {
+              resolve(result);
+            }
+          },
+          error => {
+            reject(error);
+          }
+        );
+      } catch (error) {
+        $console.error(error);
+        reject(error);
+      }
+    });
+  }
+}
 class WatchHistoryApi {
   constructor(cookie) {
     this.Http = new HttpUtil();
     this.Cookie = cookie;
   }
   getWatchHistory(pageSize = 30) {
+    return new Promise((resolve, reject) => {
+      const url = `https://api.bilibili.com/x/web-interface/history/cursor?ps=${pageSize}`;
+      this.Http.get(url, {
+        cookie: this.Cookie
+      }).then(
+        result => {
+          if (result !== undefined || result.code == 0) {
+            resolve(result.data);
+          } else {
+            reject(result);
+          }
+        },
+        error => {
+          reject(error);
+        }
+      );
+    });
+  }
+  getLaterToWatch(pageSize = 30) {
     return new Promise((resolve, reject) => {
       const url = `https://api.bilibili.com/x/web-interface/history/cursor?ps=${pageSize}`;
       this.Http.get(url, {
@@ -132,27 +181,9 @@ class WatchHistoryApi {
       );
     });
   }
-  getLaterToWatch(pageSize = 30) {
-    return new Promise((resolve, reject) => {
-      const url = `https://api.bilibili.com/x/web-interface/history/cursor?ps=${pageSize}`;
-      this.Http.get(url,{
-        cookie: this.Cookie
-      }).then(
-        result => {
-          if (result !== undefined || result.code == 0) {
-            resolve(result.data);
-          } else {
-            resolve(result);
-          }
-        },
-        error => {
-          reject(error);
-        }
-      );
-    });
-  }
 }
 module.exports = {
   AccountLoginApi,
+  UserInfoApi,
   WatchHistoryApi
 };
